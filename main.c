@@ -198,7 +198,7 @@ void turntable_scan(struct gamepad_report_t * report_p){
 			}
 		}
 	}
-	if(((system_millis-tt_press)>5000) & !analog_mode & ((report_p->buttons & (1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN))>0) ){
+	if(((system_millis-tt_press)>5000) & !analog_mode & ((report_p->buttons & ((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN)))>0) ){
 		report_p->buttons = report_p->buttons & ~((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN));
 		send_gamepad(*report_p);
 	}
