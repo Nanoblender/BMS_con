@@ -1,1 +1,6 @@
 .vscode/settings.json
+test.hex
+test.elf
+main.c.o
+hid.c.o
+encoder.c.o

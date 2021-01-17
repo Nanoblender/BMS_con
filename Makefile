@@ -31,7 +31,7 @@ LFlags += \
 	-lg \
 	-lrdimon
 # MCU specific flags (stm32f401re)
-LINKER_SCRIPTS_DIR = /home/arnaud/elec/libopencm3-tests/linker_scripts
+LINKER_SCRIPTS_DIR = ./linker_scripts
 
 CFlags += \
 	-mcpu=cortex-m4 \
@@ -48,7 +48,7 @@ LFlags += \
 
 
 # Use LibOpenCm3
-LIBOPENCM3_DIR = /home/arnaud/elec/libopencm3-tests/libopencm3
+LIBOPENCM3_DIR = ./libopencm3
 CFlags += -I $(LIBOPENCM3_DIR)/include -DSTM32F4
 LFlags += -L $(LIBOPENCM3_DIR)/lib -lopencm3_stm32f4
 
