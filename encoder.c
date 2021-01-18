@@ -19,7 +19,7 @@ void encoder_setup(void)
 	gpio_set_af(ENCODER_CH2_PORT, ENCODER_CH2_AF, ENCODER_CH2_PIN);
 }
 
-int encoder_get_counter(void)
+uint32_t encoder_get_counter(void)
 {
   return timer_get_counter(ENCODER_TIM);
 }

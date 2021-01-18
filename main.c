@@ -110,8 +110,8 @@ const struct usb_config_descriptor config = {
 	.bNumInterfaces = sizeof(ifaces)/sizeof(ifaces[0]),
 	.bConfigurationValue = 1,
 	.iConfiguration = 0,
-	.bmAttributes = 0xC0,
-	.bMaxPower = 0x32,
+	.bmAttributes = 0xa0,//Bus Powered Remote Wakeup
+	.bMaxPower = 0xF0,
 
 	.interface = ifaces,
 };
@@ -174,15 +174,15 @@ void turntable_scan(struct gamepad_report_t * report_p){
 	/**Check the postiton of the encoder and update the reportif necessary
 	 * input: hid report that contains the jostick's state 
 	**/
-	static int old_enc_val=0;
-	static int enc_val=0;
+	static uint8_t old_enc_val=0;
+	static uint8_t enc_val=0;
 	static uint32_t tt_press=0;
-	int enc_diff=0;
+	uint8_t enc_diff=0;
 	uint8_t tt_bt=0;
 	enc_val=encoder_get_counter();
 	if(old_enc_val!=enc_val){
 		if(analog_mode){
-			report_p->x=(enc_val*127)/48;
+			report_p->x=enc_val;
 			send_gamepad(*report_p);
 			old_enc_val=enc_val;
 		}
@@ -237,6 +237,7 @@ static void setup_gpio(void) {
 	gpio_mode_setup(B8_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, B8_PIN);
 	gpio_mode_setup(B9_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, B9_PIN);
 	gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT,GPIO_PUPD_NONE, GPIO0);
+	gpio_mode_setup(GPIOG, GPIO_MODE_OUTPUT,GPIO_PUPD_NONE, GPIO6);
 
 }
 
@@ -256,6 +257,7 @@ int main(void)
 	/*USB setup*/
 	usbd_dev = usbd_init(&otgfs_usb_driver, &dev_descr, &config, usb_strings,sizeof(usb_strings)/sizeof(char *),usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(usbd_dev, hid_set_config);
+	gpio_clear(GPIOG,GPIO6);
 	/*Wait  for the usb to setup*/
 	woke = system_millis + 5000;
 	while (woke > system_millis)usbd_poll(usbd_dev);

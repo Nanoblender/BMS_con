@@ -27,4 +27,4 @@ Left encoder configuration
 
 
 void encoder_setup(void);
-int encoder_get_counter(void);
+uint32_t encoder_get_counter(void);
