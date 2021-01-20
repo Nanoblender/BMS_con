@@ -127,16 +127,15 @@ void sys_tick_handler(void)
 	system_millis++;
 }
 
-void send_gamepad(struct gamepad_report_t report){
+void send_gamepad(struct gamepad_report_t report, uint8_t * new_report){
 	/** Send the gamepad's HID report
 	 **/
 	uint16_t bytes_written = 0;
-	do {
-		bytes_written = usbd_ep_write_packet(usbd_dev, 0x81, &report, GAMEPAD_REPORT_SIZE);
-	} while (bytes_written == 0);
+	bytes_written = usbd_ep_write_packet(usbd_dev, 0x81, &report, GAMEPAD_REPORT_SIZE);
+	if(bytes_written!=0) *new_report=0;
 }
 
-void button_scan(struct gamepad_report_t * report_p){
+void button_scan(struct gamepad_report_t * report_p, uint8_t * new_report_p){
 	/**Scan the switches and update the buttons if there is a change
 	 * input: hid report that contains the jostick's state 
 	**/
@@ -144,7 +143,6 @@ void button_scan(struct gamepad_report_t * report_p){
 	static uint8_t buttons[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	static uint32_t press_time[16]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint8_t i=0;
-	uint8_t bt_update=0;
 	uint32_t current_time =0;
 	buttons_in[0]=!(gpio_get(B1_PORT, B1_PIN)==B1_PIN);
 	buttons_in[1]=!(gpio_get(B2_PORT, B2_PIN)==B2_PIN);
@@ -162,28 +160,25 @@ void button_scan(struct gamepad_report_t * report_p){
 		if((current_time-press_time[i])>DEBOUNCE_TIME*(SYSTICK_FREQ/1000)){
 			buttons[i]=buttons_in[i];
 			report_p->buttons = (report_p->buttons & ~(1<<i)) | ((buttons[i]<<i) & (1<<i));
-			bt_update=1;
+			*new_report_p=1;
 		}
-	}
-	if(bt_update==1){
-		send_gamepad(*report_p);
 	}
 }
 
-void turntable_scan(struct gamepad_report_t * report_p){
+void turntable_scan(struct gamepad_report_t * report_p, uint8_t * new_report_p){
 	/**Check the postiton of the encoder and update the reportif necessary
 	 * input: hid report that contains the jostick's state 
 	**/
 	static uint8_t old_enc_val=0;
 	static uint8_t enc_val=0;
 	static uint32_t tt_press=0;
-	uint8_t enc_diff=0;
+	int8_t enc_diff=0;
 	uint8_t tt_bt=0;
 	enc_val=encoder_get_counter();
 	if(old_enc_val!=enc_val){
 		if(analog_mode){
 			report_p->x=enc_val;
-			send_gamepad(*report_p);
+			*new_report_p=1;
 			old_enc_val=enc_val;
 		}
 		else{
@@ -193,14 +188,14 @@ void turntable_scan(struct gamepad_report_t * report_p){
 			if(tt_bt>0){
 				old_enc_val=enc_val;
 				report_p->buttons = report_p->buttons | (1<<tt_bt);
-				send_gamepad(*report_p);
+				*new_report_p=1;
 				tt_press=system_millis;
 			}
 		}
 	}
 	if(((system_millis-tt_press)>5000) & !analog_mode & ((report_p->buttons & ((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN)))>0) ){
 		report_p->buttons = report_p->buttons & ~((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN));
-		send_gamepad(*report_p);
+		*new_report_p=1;
 	}
 
 }
@@ -248,6 +243,7 @@ int main(void)
 {
 	uint32_t woke=0;
 	struct gamepad_report_t report={0,0};
+	uint8_t new_report=0;
 	setup_clock();
 	setup_gpio();
 	encoder_setup();
@@ -259,17 +255,19 @@ int main(void)
 	usbd_register_set_config_callback(usbd_dev, hid_set_config);
 	gpio_clear(GPIOG,GPIO6);
 	/*Wait  for the usb to setup*/
-	woke = system_millis + 5000;
-	while (woke > system_millis)usbd_poll(usbd_dev);
-	//Checking if Button8 is held down to set the turntable in digital mode
-	while(gpio_get(B8_PORT, B8_PIN)!=B8_PIN){
-		analog_mode=0;
-		usbd_poll(usbd_dev);
+	woke = system_millis + 50000;
+	while (woke > system_millis){
+		//Checking if Button8 is held down to set the turntable in digital mode
+		while(gpio_get(B8_PORT, B8_PIN)!=B8_PIN){
+			analog_mode=0;
+		}
 	}
+	
 
 	while (1){
 		usbd_poll(usbd_dev);
-		button_scan(&report);
-		turntable_scan(&report);
+		button_scan(&report, &new_report);
+		turntable_scan(&report, &new_report);
+		if(new_report)send_gamepad(report, &new_report);
 	}
 }
