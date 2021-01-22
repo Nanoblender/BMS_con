@@ -3,13 +3,13 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/timer.h>
 
-//number of ticks per turn, encoder 24CPR
+//Number of ticks per turn, encoder 24CPR
 #define ENCODER_PERIOD (24*4-1)
 // GPIO_PUPD_PULLUP GPIO_PUPD_PULLDOWN GPIO_PUPD_NONE
 #define ENCODER_INPUT_CFG  GPIO_PUPD_PULLUP
 
 /*******************************
-Left encoder configuration
+Encoder configuration
 *******************************/
 #define ENCODER_RCC_TIM RCC_TIM3
 #define ENCODER_TIM TIM3
