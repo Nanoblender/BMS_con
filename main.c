@@ -174,15 +174,21 @@ void turntable_scan(struct gamepad_report_t * report_p, uint8_t * new_report_p){
 	static uint32_t tt_press=0;
 	int8_t enc_diff=0;
 	uint8_t tt_bt=0;
+	uint8_t down_limit=(ENCODER_PERIOD)>>2;
+	uint8_t up_limit=(ENCODER_PERIOD)-((ENCODER_PERIOD)>>2);
 	enc_val=encoder_get_counter();
-	if(old_enc_val!=enc_val){
-		if(analog_mode){
+	if(analog_mode){
+		if(old_enc_val!=enc_val){
 			report_p->x=enc_val;
 			*new_report_p=1;
 			old_enc_val=enc_val;
 		}
-		else{
-			enc_diff=enc_val-old_enc_val;
+	}
+	else{
+		if(old_enc_val!=enc_val){
+			if((enc_val<down_limit) & (old_enc_val>up_limit))enc_diff=enc_val+ENCODER_PERIOD-old_enc_val;
+			else if ((enc_val>up_limit) & (old_enc_val<down_limit))enc_diff=enc_val-ENCODER_PERIOD-old_enc_val;
+			else enc_diff=enc_val-old_enc_val;
 			if(enc_diff>TURNTABLE_TRESHOLD)tt_bt=TURNTABLE_UP;
 			else if(enc_diff<-TURNTABLE_TRESHOLD) tt_bt=TURNTABLE_DOWN;
 			if(tt_bt>0){
@@ -192,12 +198,11 @@ void turntable_scan(struct gamepad_report_t * report_p, uint8_t * new_report_p){
 				tt_press=system_millis;
 			}
 		}
+		if(((system_millis-tt_press)>5000) & ((report_p->buttons & ((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN)))>0)){
+			report_p->buttons = report_p->buttons & ~((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN));
+			*new_report_p=1;
+		}
 	}
-	if(((system_millis-tt_press)>5000) & !analog_mode & ((report_p->buttons & ((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN)))>0) ){
-		report_p->buttons = report_p->buttons & ~((1<<TURNTABLE_UP)+(1<<TURNTABLE_DOWN));
-		*new_report_p=1;
-	}
-
 }
 
 static void setup_clock(void) {
