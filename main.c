@@ -260,7 +260,7 @@ int main(void)
 	usbd_register_set_config_callback(usbd_dev, hid_set_config);
 	gpio_clear(GPIOG,GPIO6);
 	/*Wait  for the usb to setup*/
-	woke = system_millis + 50000;
+	woke = system_millis + 1000000;
 	while (woke > system_millis){
 		//Checking if Button8 is held down to set the turntable in digital mode
 		while(gpio_get(B8_PORT, B8_PIN)!=B8_PIN){
