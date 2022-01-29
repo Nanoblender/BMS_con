@@ -56,8 +56,8 @@ const struct usb_endpoint_descriptor hid_endpoint = {
 	.bDescriptorType = USB_DT_ENDPOINT,
 	.bEndpointAddress = 0x81,
 	.bmAttributes = USB_ENDPOINT_ATTR_INTERRUPT,
-	.wMaxPacketSize = GAMEPAD_REPORT_SIZE,
-	.bInterval = 0x20,
+	.wMaxPacketSize = 0x40,
+	.bInterval = 0x01,
 };
 
 struct usb_interface_descriptor hid_iface = {

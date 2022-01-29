@@ -35,7 +35,7 @@ static const uint8_t hid_report_descriptor[] =
     0x05, 0x01, //     USAGE_PAGE (Generic Desktop)
     0x09, 0x01, //     USAGE (Pointer)
     0x15, 0x00, //     LOGICAL_MINIMUM (0)
-    0x25, 0x5f, //     LOGICAL_MAXIMUM (ENCODER_PERIOD=95)
+	0x26, 0x5f, 0x00, //     LOGICAL_MAXIMUM (ENCODER_PERIOD=95)
     0x75, 0x08, //     REPORT_SIZE (8)
     0x95, 0x01, //     REPORT_COUNT (1)
     0xa1, 0x00, //     COLLECTION (Physical)
